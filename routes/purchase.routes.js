@@ -2,50 +2,19 @@ import {Router} from 'express'
 import {PurchaseController} from '../controllers/purchase.controller.js'
 import {validateAuth} from '../middlewares/auth.middleware.js'
 import {isAdmin} from '../middlewares/validateRole.middleware.js'
+import {createPurchaseValidator} from '../validators/purchase.validator.js'
+import {validateFields} from '../middlewares/validateFields.middleware.js'
 
 export const purchaseRoutes = Router()
 
 // Admin
 /**
- * @api {get} /purchases/ Get all purchases
- * @apiName Get all purchases
- * @apiDescription Este endpoint se usa para visualizar el listado de las compras de todos los usuarios (Disponible solo para administradores).
+ * @api {get} /api/v1/purchases Listar compras (Administrador)
  * @apiGroup Purchases
+ * @apiVersion 1.0.0
+ * @apiDescription Devuelve todas las compras registradas.
  *
- * @apiSuccessExample {json} Respuesta exitosa:
- * [
- *     {
- *         "id": 1,
- *         "total": 102630,
- *         "date": "2025-08-27 22:34:44",
- *         "products": [
- *             {
- *                 "id": 1,
- *                 "name": "Producto 1",
- *                 "price": 20526,
- *                 "quantityPurchased": 5
- *             }
- *         ],
- *         "user": {
- *             "id": 1,
- *             "name": "Juan Rojas"
- *         }
- *     }
- * ]
- *
- * @apiErrorExample {json} Error 500:
- * {"message": "Internal server error"}
- */
-purchaseRoutes.get('/admin', validateAuth, isAdmin, PurchaseController.getAll)
-
-// Customer
-/**
- * @api {get} /purchases/ Get all purchases by user
- * @apiName Get all purchases by user
- * @apiDescription Este endpoint se usa para visualizar el listado de las compras del usuario autenticado.
- * @apiGroup Purchases
- *
- * @apiSuccessExample {json} Respuesta exitosa:
+ * @apiSuccessExample {json} 200
  * [
  *     {
  *         "id": 1,
@@ -62,14 +31,38 @@ purchaseRoutes.get('/admin', validateAuth, isAdmin, PurchaseController.getAll)
  *         ]
  *     }
  * ]
+ */
+purchaseRoutes.get('/', validateAuth, isAdmin, PurchaseController.getAll)
+
+// Customer
+/**
+ * @api {get} /api/v1/purchases Listar compras (Usuario autenticado)
+ * @apiGroup Purchases
+ * @apiVersion 1.0.0
+ * @apiDescription Devuelve todas las compras registradas del usuario autenticado.
  *
- * @apiErrorExample {json} Error 500:
- * {"message": "Internal server error"}
+ * @apiSuccessExample {json} 200
+ * [
+ *     {
+ *         "id": 1,
+ *         "total": 102630,
+ *         "date": "2025-08-27 22:34:44",
+ *         "products": [
+ *             {
+ *                 "id": 1,
+ *                 "lot": "PR123456",
+ *                 "name": "Producto 1",
+ *                 "price": 20526,
+ *                 "quantityPurchased": 5
+ *             }
+ *         ]
+ *     }
+ * ]
  */
 purchaseRoutes.get('/', validateAuth, PurchaseController.getByUser)
 
 /**
- * @api {get} /purchases/:id/invoice View an invoice purchase by user
+ * @api {get} /purchases/:id/invoice Ver una factura de compra por usuario
  * @apiName View an invoice purchase by user
  * @apiDescription Este endpoint se usa para visualizar la factura de compra por ID del usuario autenticado.
  * @apiGroup Purchases
@@ -98,22 +91,18 @@ purchaseRoutes.get('/', validateAuth, PurchaseController.getByUser)
 purchaseRoutes.get('/:id/invoice', validateAuth, PurchaseController.getInvoice)
 
 /**
- * @api {post} /purchases/ Add an purchase
- * @apiName Add an purchase
- * @apiDescription Este endpoint se usa para registrar una nueva compra.
+ * @api {post} /api/v1/purchases Crear compra
  * @apiGroup Purchases
+ * @apiVersion 1.0.0
+ * @apiDescription Registra una nueva compra.
  *
- * @apiBody {Arrau} products Listado de productos. En este listado debe ir un objeto con la misma estructura de los productos, solo se debe incluir el ID del producto y la cantidad (quantity). (obligatorio)
+ * @apiBody {Array} products Lista de productos de la compra.
+ * @apiBody {Number} id ID del producto (Estos campos hacen parte del objeto que debe ir en el array de productos).
+ * @apiBody {Number} quantity Cantidad del producto (Estos campos hacen parte del objeto que debe ir en el array de productos).
  *
- * @apiSuccessExample {json} Respuesta exitosa:
- * [
- *     {
- *         "message": "Purchase has been created"
- *     }
- * ]
- *
- * @apiErrorExample {json} Error 404:
- * {"message": "Products not found"}
- * {"message": "Product not found or the available quantity is insufficient."}
+ * @apiSuccessExample {json} 201 - Purchase has been created
+ * {
+ *     "message": "Purchase has been created"
+ * }
  */
-purchaseRoutes.post('/', validateAuth, PurchaseController.create)
+purchaseRoutes.post('/', validateAuth, createPurchaseValidator, validateFields, PurchaseController.create)

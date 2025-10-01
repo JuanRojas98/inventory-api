@@ -1,10 +1,7 @@
-import Purchase from '../models/purchase.model.js'
-import Product from '../models/product.model.js'
-import PurchaseItem from "../models/purchaseItem.model.js";
-import User from '../models/user.model.js'
+import {Product, Purchase, PurchaseItem, User} from '../models/index.js'
 
 export class PurchaseController {
-    static async getAll(req, res) {
+    static async getAll(req, res, next) {
         try {
             const purchases = await Purchase.findAll({
                 attributes: ['id', 'date', 'total'],
@@ -38,12 +35,11 @@ export class PurchaseController {
             res.json(purchasesFormated)
         }
         catch (err) {
-            console.log(err.message)
-            res.status(500).json({message: err.message})
+            next(err)
         }
     }
     
-    static async getByUser(req, res) {
+    static async getByUser(req, res, next) {
         try {
             const userId = req.user.id
             const purchases = await Purchase.findAll({
@@ -73,12 +69,11 @@ export class PurchaseController {
             res.json(purchasesFormated)
         }
         catch (err) {
-            console.log(err.message)
-            res.status(500).json({message: err.message})
+            next(err)
         }
     }
 
-    static async getInvoice(req, res) {
+    static async getInvoice(req, res, next) {
         try {
             const UserId = req.user.id
             const { id } = req.params
@@ -113,19 +108,16 @@ export class PurchaseController {
             res.json(purchaseFormated);
         }
         catch (err) {
-            console.log(err.message)
-            res.status(500).json({message: err.message})
+            next(err)
         }
     }
 
-    static async create(req, res) {
+    static async create(req, res, next) {
         try {
             const {products} = req.body
 
-            // Validamos que exista una lista de productos
             if (products.length === 0) return res.status(404).json({error: 'Products not found'})
 
-            // Validamos si el producto existe y si tiene cantidad disponible
             for (const item of products) {
                 const product = await Product.findByPk(item.id)
 
@@ -133,14 +125,11 @@ export class PurchaseController {
             }
 
             let total = 0
+            const purchase = await Purchase.create({userId: req.user.id, total: 0})
 
-            // Registro de la compra
-            const purchase = await Purchase.create({UserId: req.user.id, total: 0})
-
-            // Registro de los productos de la compra y calculo del total de la compra
             for (const item of products) {
                 const product = await Product.findByPk(item.id)
-                await PurchaseItem.create({quantity: item.quantity, PurchaseId: purchase.id, ProductId: item.id})
+                await PurchaseItem.create({ purchaseId: purchase.id, productId: item.id, quantity: item.quantity, price: product.price })
 
                 total += product.price * item.quantity
                 product.quantity = product.quantity - item.quantity
@@ -152,8 +141,7 @@ export class PurchaseController {
             res.status(201).json({message: 'Purchase has been created'})
         }
         catch (err) {
-            console.log(err.message)
-            res.status(500).json({message: err.message})
+            next(err)
         }
     }
 }

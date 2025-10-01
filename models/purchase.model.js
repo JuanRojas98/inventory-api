@@ -1,22 +1,30 @@
-import db from '../config/database.js'
 import { DataTypes, Model } from 'sequelize'
-import User from './user.model.js'
 
-class Purchase extends Model {}
+export default (sequelize) => {
+    class Purchase extends Model {}
 
-Purchase.init(
-    {
-        id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
-        date: {type: DataTypes.DATE, defaultValue: DataTypes.NOW},
-        total: {type: DataTypes.FLOAT, allowNull: false},
-    },
-    {
-        sequelize: db,
-        modelName: 'Purchase'
-    }
-)
+    Purchase.init(
+        {
+            id: {
+                type: DataTypes.INTEGER,
+                autoIncrement: true,
+                primaryKey: true
+            },
+            total: {
+                type: DataTypes.FLOAT,
+                allowNull: false
+            },
+            userId: {
+                type: DataTypes.INTEGER,
+                allowNull: false,
+                field: 'user_id',
+            }
+        },
+        {
+            sequelize,
+            modelName: 'Purchase'
+        }
+    )
 
-User.hasMany(Purchase)
-Purchase.belongsTo(User)
-
-export default Purchase
+    return Purchase
+}

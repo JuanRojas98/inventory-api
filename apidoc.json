@@ -1,7 +1,20 @@
 {
   "name": "Inventory API",
   "version": "1.0.0",
-  "description": "Documentación Inventory API",
+  "description": "Documentación de la API que gestiona usuarios, productos y compras con autenticación JWT.",
   "title": "Documentación Inventory API",
-  "url": "http://localhost:3000/api/v1"
+  "url": "http://localhost:3000/api/v1",
+  "sampleUrl": false,
+  "template": {
+    "withCompare": true,
+    "withGenerator": true
+  },
+  "header": {
+    "title": "Introducción",
+    "content": "<h2>Bienvenido 🚀</h2><p>Esta API permite manejar autenticación, usuarios, productos y compras.</p><p>Para acceder a la mayoría de los endpoints es necesario un <code>accessToken</code> válido.</p>"
+  },
+  "footer": {
+    "title": "Información",
+    "content": "<p>API desarrollada con Express + JWT + MySQL.</p><p>Autor: Tu Nombre</p>"
+  }
 }

@@ -1,101 +1,91 @@
 import {Router} from 'express'
-import {ProductController} from "../controllers/product.controller.js";
+import {ProductController} from '../controllers/product.controller.js'
 import {validateAuth} from '../middlewares/auth.middleware.js'
 import {isAdmin} from '../middlewares/validateRole.middleware.js'
+import {validateFields} from '../middlewares/validateFields.middleware.js'
+import {createProductValidator, updateProductValidator} from '../validators/product.validator.js'
 
 export const productRoutes = Router()
 
 /**
- * @api {get} /products/ Get all products
- * @apiName Get all products
- * @apiDescription Este endpoint se usa para visualizar el listado de productos (Disponible solo para administradores).
+ * @api {get} /api/v1/products Listar productos
  * @apiGroup Products
+ * @apiVersion 1.0.0
+ * @apiDescription Devuelve todos los productos disponibles.
  *
- * @apiSuccessExample {json} Respuesta exitosa:
+ * @apiSuccessExample {json} 200 - Lista de productos
  * [
- *     {
+ *   {
  *         "id": 1,
  *         "lot": "PR123456",
  *         "name": "Producto 1",
  *         "price": 20526,
- *         "quantity": 10,
+ *         "quantity": 20,
  *         "entryDate": "2025-08-27",
- *         "createdAt": "2025-08-27 21:54:05",
- *         "updatedAt": "2025-08-27 22:34:44"
- *     }
+ *         "createdAt": "2025-10-01 15:26:27",
+ *         "updatedAt": "2025-10-01 15:26:27"
+ *   }
  * ]
- *
- * @apiErrorExample {json} Error 500:
- * {"message": "Internal server error"}
  */
 productRoutes.get('/', validateAuth, isAdmin, ProductController.getAll)
 
 /**
- * @api {get} /products/:id View an product
- * @apiName View an product
- * @apiDescription Este endpoint se usa para visualizar los datos de un producto por su ID (Disponible solo para administradores).
+ * @api {get} /api/v1/products/:id Obtener producto
  * @apiGroup Products
+ * @apiVersion 1.0.0
+ * @apiDescription Devuelve los datos de un producto específico.
  *
- * @apiParam {Number} id ID del producto (obligatorio)
+ * @apiParam {Number} id ID único del producto.
  *
- * @apiSuccessExample {json} Respuesta exitosa:
+ * @apiSuccessExample {json} 200
  * {
  *     "id": 1,
  *     "lot": "PR123456",
  *     "name": "Producto 1",
  *     "price": 20526,
- *     "quantity": 10,
+ *     "quantity": 20,
  *     "entryDate": "2025-08-27",
- *     "createdAt": "2025-08-27 21:54:05",
- *     "updatedAt": "2025-08-27 22:34:44"
+ *     "createdAt": "2025-10-01 15:26:27",
+ *     "updatedAt": "2025-10-01 15:26:27"
  * }
  *
- * @apiErrorExample {json} Error 404:
- * {"message": "Product not found"}
+ * @apiError 404 Product not found.
  */
 productRoutes.get('/:id', validateAuth, isAdmin, ProductController.getOne)
 
 /**
- * @api {post} /products/ Add an product
- * @apiName Add an product
- * @apiDescription Este endpoint se usa para registrar un nuevo producto (Disponible solo para administradores).
+ * @api {post} /api/v1/products Crear producto
  * @apiGroup Products
+ * @apiVersion 1.0.0
+ * @apiDescription Crea un nuevo producto.
  *
- * @apiBody {String} lot Número de lote (obligatorio)
- * @apiBody {String} name Nombre del producto (obligatorio)
- * @apiBody {Float} price Precio del producto (obligatorio)
- * @apiBody {Number} quantity Cantidad disponible del producto (obligatorio)
- * @apiBody {Date} entryDate Fecha de ingreso del producto (obligatorio)
+ * @apiBody {String} lot Numero de lote.
+ * @apiBody {String} name Nombre del producto.
+ * @apiBody {Number} price Precio del producto.
+ * @apiBody {Number} quantity Cantidad del producto.
+ * @apiBody {String} entry_date Fecha de ingreso del producto.
  *
- * @apiSuccessExample {json} Respuesta exitosa:
+ * @apiSuccessExample {json} 201 - Product has been created
  * {
  *     "message": "Product has been created"
  * }
- *
- * @apiErrorExample {json} Error 404:
- * {"message": "Product already exists"}
  */
-productRoutes.post('/', validateAuth, isAdmin, ProductController.create)
+productRoutes.post('/', validateAuth, isAdmin, createProductValidator, validateFields, ProductController.create)
 
 /**
- * @api {put} /products/:id Edit an product
- * @apiName Edit an product
- * @apiDescription Este endpoint se usa para actualizar los datos de un producto (Disponible solo para administradores).
+ * @api {put} /api/v1/products/:id Actualizar producto
  * @apiGroup Products
+ * @apiVersion 1.0.0
+ * @apiDescription Actualiza un producto existente.
  *
- * @apiParam {Number} id ID del producto (obligatorio)
+ * @apiParam {Number} id ID único del producto.
+ * @apiBody {String} [name] Nombre del producto.
+ * @apiBody {Number} [price] Precio del producto.
+ * @apiBody {Number} [quantity] Cantidad del producto.
  *
- * @apiBody {String} [name] Nombre del producto
- * @apiBody {Float} [price] Precio del producto
- * @apiBody {Number} [quantity] Cantidad disponible del producto
- * @apiBody {Date} [entryDate] Fecha de ingreso del producto
- *
- * @apiSuccessExample {json} Respuesta exitosa:
+ * @apiSuccessExample {json} 200 - Product has been updated
  * {
  *     "message": "Product has been updated"
  * }
- *
- * @apiErrorExample {json} Error 404:
- * {"message": "Product not found"}
  */
-productRoutes.put('/:id', validateAuth, isAdmin, ProductController.update)
+productRoutes.put('/:id', validateAuth, isAdmin, updateProductValidator, validateFields, ProductController.update)

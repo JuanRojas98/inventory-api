@@ -20,7 +20,7 @@ export class TokenService {
             role: user.role
         }
 
-        return jwt.sign(payload, REFRESH_TOKEN_SECRET_KEY, {expiresIn: '10d'})
+        return jwt.sign(payload, REFRESH_TOKEN_SECRET_KEY, {expiresIn: '1d'})
     }
 
     static validateAccessToken(accessToken) {

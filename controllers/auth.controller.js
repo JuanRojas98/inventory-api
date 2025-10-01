@@ -1,9 +1,9 @@
 import bcrypt from 'bcryptjs'
-import User from '../models/user.model.js'
+import {User} from '../models/index.js'
 import {TokenService} from '../services/token.service.js'
 
 export class AuthController {
-    static async login(req, res) {
+    static async login(req, res, next) {
         try {
             const {username, password} = req.body
             const user = await User.findOne({
@@ -30,22 +30,27 @@ export class AuthController {
             )
         }
         catch (err) {
-            console.log(err)
-            res.status(500).json({message: err.message})
+            next(err)
         }
     }
 
-    static async register(req, res) {
+    static async register(req, res, next) {
         try {
+            const {name, username, password} = req.body
 
+            const existingUser = await User.findOne({where: {username}})
+            if (existingUser) return res.status(400).json({message: 'User already exists'})
+
+            const passwordHash = await bcrypt.hash(password, 10);
+            await User.create({name, username, password: passwordHash})
+            res.status(201).json({message: 'User has been created'})
         }
         catch (err) {
-            console.log(err.message)
-            res.status(500).json({message: err.message})
+            next(err)
         }
     }
 
-    static async refreshToken(req, res) {
+    static async refreshToken(req, res, next) {
         try {
             const {refreshToken} = req.body
 
@@ -57,8 +62,7 @@ export class AuthController {
             res.status(200).json({accessToken})
         }
         catch (err) {
-            console.log(err.message)
-            res.status(401).json({message: err.message})
+            next(err)
         }
     }
 }

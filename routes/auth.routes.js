@@ -1,53 +1,65 @@
 import {Router} from "express";
 import {AuthController} from '../controllers/auth.controller.js'
+import {loginValidator, registerUserValidator} from '../validators/auth.validator.js'
+import {validateFields} from '../middlewares/validateFields.middleware.js'
 
 export const authRoutes = Router()
 
 /**
- * @api {post} /auth/login Login
- * @apiName Login
- * @apiDescription Este endpoint se usa para iniciar sesión.
+ * @api {post} /api/v1/auth/login Iniciar sesión
  * @apiGroup Auth
+ * @apiVersion 1.0.0
+ * @apiDescription Permite a un usuario autenticarse y obtener tokens de acceso y refresco.
  *
- * @apiBody {String} username Nombre de usuario para acceder al sistema (obligatorio)
- * @apiBody {String} password Contraseña del usuario (obligatorio)
+ * @apiBody {String} username Username del usuario.
+ * @apiBody {String} password Contraseña del usuario.
  *
- * @apiSuccess {Number} id ID del usuario
- * @apiSuccess {String} name Nombre del usuario
- * @apiSuccess {String} accessToken Token de acceso
- * @apiSuccess {String} refreshToken Token de refresco
+ * @apiSuccess {String} accessToken Token de acceso válido por 15 minutos.
+ * @apiSuccess {String} refreshToken Token de refresco válido por 1 día.
  *
- * @apiSuccessExample {json} Respuesta exitosa:
+ * @apiSuccessExample {json} 200 - Éxito
  * {
- *     "id": 1,
- *     "name": "Usuario prueba",
- *     "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwibmFtZSI6Ikp1Yhds456iLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NTYzNjU2NTIsImV4cCI6MTc1NjM2NjU1Mn0.VyOfW-zrE14PfMxeJ4J2aQ-dUg5LwzgtbjOZq5fqMP9",
- *     "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwibmFtZSI6Ikp1YW4gUm9qYXMiLCJyb2xlIjoiYYhds456LCJpYXQiOjE3NTYzNjU2NTIsImV4cCI6MTc1NzIyOTY1Mn0.6dTT-S8V36NZr8VVI4I18gb8UD5YZEXQnnfViHdQAPF"
+ *   "accessToken": "eyJhbGciOiJIUzI1...",
+ *   "refreshToken": "eyJhbGciOiJIUzI1..."
  * }
  *
- * @apiErrorExample {json} Error 400:
- * {"message": "Username is required"}
+ * @apiError 401 Password invalid.
  */
-authRoutes.post('/login', AuthController.login)
+authRoutes.post('/login', loginValidator, validateFields, AuthController.login)
 
 /**
- * @api {post} /auth/refresh Refresh token
- * @apiName Refresh
- * @apiDescription Este endpoint se usa para refrescar los tokens de acceso y refresco.
+ * @api {post} /api/v1/auth/register Registrar usuario
  * @apiGroup Auth
+ * @apiVersion 1.0.0
+ * @apiDescription Crea un nuevo usuario en la plataforma.
  *
- * @apiBody {String} refreshToken Token de refresco (obligatorio)
+ * @apiBody {String} name Nombre del usuario.
+ * @apiBody {String} username Username del usuario.
+ * @apiBody {String} password Contraseña segura.
  *
- * @apiSuccess {String} accessToken Token de acceso
- * @apiSuccess {String} refreshToken Token de refresco
- *
- * @apiSuccessExample {json} Respuesta exitosa:
+ * @apiSuccessExample {json} 201 - User has been created
  * {
- *     "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwibmFtZSI6Ikp1YW4gUm9qYXMiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NTYzNjU2NTIsImV4cCI6MTc1NjM2NjU1Mn0.VyOfW-zrE14PfMxeJ4J2aQ-dUg5LwzgtbjOZq5fqMP8",
- *     "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwibmFtZSI6Ikp1YW4gUm9qYXMiLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NTYzNjU2NTIsImV4cCI6MTc1NzIyOTY1Mn0.6dTT-S8V36NZr8VVI4I18gb8UD5YZEXQnnfViHdQAPE"
+ *     "message": "User has been created"
  * }
  *
- * @apiErrorExample {json} Error 400:
- * {"message": "No refresh token provided"}
+ * @apiError 400 User already exists.
+ */
+authRoutes.post('/register', registerUserValidator, validateFields, AuthController.register)
+
+
+/**
+ * @api {post} /api/v1/auth/refresh Refrescar token
+ * @apiGroup Auth
+ * @apiVersion 1.0.0
+ * @apiDescription Genera un nuevo accessToken usando el refreshToken válido.
+ *
+ * @apiBody {String} refreshToken Token de refresco válido.
+ *
+ * @apiSuccessExample {json} 200 - Éxito
+ * {
+ *   "accessToken": "eyJhbGciOiJIUzI1..."
+ * }
+ *
+ * @apiError 400 No refresh token provided.
  */
 authRoutes.post('/refresh', AuthController.refreshToken)
